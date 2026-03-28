@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista da Leila</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:  #ffffff;
+    --black:  #1a1a1a;
+    --red:    #c8412a;
+    --blue:   #2b5ea7;
+    --yellow: #f5c84a;
+    --white:  #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--cream);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--black);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── LOCK ───────────────────────────────────── */
+  #lock {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--black);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 0;
+  }
+
+  .lock-top {
+    width: 100%; text-align: center;
+    padding: 32px 24px 24px;
+    position: relative;
+  }
+
+  /* Bauhaus geometric accent */
+  .lock-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    background: var(--red);
+    margin: 0 auto 24px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .lock-circle::before { display: none; }
+  .lock-circle::after  { display: none; }
+  .lock-icon {
+    font-size: 2.2rem;
+    z-index: 1;
+    position: relative;
+  }
+
+  .lock-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--white);
+    letter-spacing: 0.12em;
+    line-height: 1;
+  }
+  .lock-title span { color: var(--yellow); }
+
+  .lock-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+
+  .lock-form {
+    width: 100%;
+    max-width: 320px;
+    padding: 0 24px 40px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  .lock-form input {
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid rgba(255,255,255,0.9);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.1rem;
+    padding: 10px 0;
+    letter-spacing: 0.3em;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .lock-form input:focus { border-color: var(--yellow); }
+  .lock-form input::placeholder { color: rgba(255,255,255,0.75); letter-spacing: 0.15em; }
+
+  .lock-btn {
+    background: var(--yellow);
+    color: var(--black);
+    border: none; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    padding: 14px;
+    margin-top: 4px;
+    transition: background 0.15s;
+  }
+  .lock-btn:hover { background: var(--red); color: var(--white); }
+
+  .lock-err {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--red);
+    text-align: center;
+    letter-spacing: 0.1em;
+    min-height: 16px;
+  }
+
+  /* Bauhaus stripe bar at bottom of lock */
+  .stripe-bar {
+    width: 100%;
+    display: flex; height: 10px;
+  }
+  .stripe-bar div { flex: 1; }
+  .stripe-bar div { background: var(--blue); }
+
+  /* ── APP ────────────────────────────────────── */
+  #app { display: none; }
+
+  /* Header */
+  .hd {
+    background: var(--black);
+    padding: 0;
+    position: sticky; top: 0; z-index: 10;
+  }
+
+  .hd-inner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: stretch;
+    min-height: 72px;
+    gap: 0;
+  }
+
+  .hd-left {
+    padding: 14px 20px;
+  }
+
+  .hd-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--white);
+    letter-spacing: 0.1em;
+    line-height: 1;
+  }
+  .hd-title span { color: var(--yellow); }
+
+  .hd-date {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .hd-right {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px 20px;
+    gap: 2px;
+    width: 90px;
+    flex-shrink: 0;
+    background: var(--red);
+  }
+
+  .hd-count {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--white);
+    line-height: 1;
+  }
+
+  .hd-count-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* Progress strip */
+  .prog-strip { display: none; }
+  .prog-fill  { display: none; }
+
+  /* Section */
+  .container { padding: 0 0 80px; }
+
+  .section { border-bottom: 2px solid var(--black); }
+
+  .sec-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: stretch;
+    border-bottom: 2px solid var(--black);
+    background: var(--black);
+  }
+
+  .sec-color-bar { width: 52px; flex-shrink: 0; }
+
+  .sec-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    padding: 10px 14px;
+    color: var(--white);
+  }
+
+  .sec-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: rgba(255,255,255,0.5);
+    padding: 10px 16px;
+    display: flex; align-items: center;
+    width: 90px;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+
+  .sec-mercearia .sec-color-bar { background: var(--blue); }
+  .sec-frios     .sec-color-bar { background: var(--red); }
+  .sec-horti     .sec-color-bar { background: var(--yellow); }
+
+  /* Item */
+  .item {
+    display: grid;
+    grid-template-columns: 52px 1fr auto;
+    align-items: stretch;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background 0.15s;
+    background: var(--cream);
+    user-select: none;
+  }
+  .item:active { background: rgba(0,0,0,0.04); }
+
+  .item.done { background: rgba(0,0,0,0.03); }
+  .item.done .iname { text-decoration: line-through; color: rgba(0,0,0,0.3); }
+  .item.done .iqty  { color: rgba(0,0,0,0.2); }
+  .item.done .chk-col { background: #3a7d44; border-right-color: #2e6336; }
+  .item.done .chk-col::after { border-color: #ffffff; }
+
+  .chk-col {
+    display: flex; align-items: center; justify-content: center;
+    border-right: 1px solid rgba(0,0,0,0.1);
+    background: var(--cream);
+    transition: background 0.2s;
+    position: relative;
+  }
+
+  /* large checkmark drawn via pseudo-element */
+  .chk-col::after {
+    content: '';
+    display: block;
+    width: 10px; height: 18px;
+    border: 3px solid rgba(0,0,0,0.18);
+    border-top: none; border-left: none;
+    transform: rotate(45deg) translateY(-3px);
+    transition: border-color 0.2s;
+  }
+
+  .iinfo {
+    padding: 12px 14px;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .iname {
+    font-size: 0.85rem;
+    font-weight: 400;
+    color: var(--black);
+    line-height: 1.3;
+    transition: color 0.15s;
+  }
+
+  .iqty-col {
+    display: flex; align-items: center;
+    padding: 0 14px;
+    border-left: 1px solid rgba(0,0,0,0.08);
+    width: 90px;
+    flex-shrink: 0;
+    justify-content: flex-end;
+  }
+  .iqty {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(0,0,0,0.4);
+    letter-spacing: 0.05em;
+    text-align: right;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+
+  /* Bottom bar */
+  .bot {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    display: grid; grid-template-columns: 1fr auto;
+    background: var(--black); z-index: 20;
+  }
+  .bot-hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.3);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    display: flex; align-items: center;
+  }
+  .clr-btn {
+    background: var(--red);
+    color: var(--white);
+    border: none; cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.2em;
+    padding: 0 24px;
+    transition: background 0.15s;
+  }
+  .clr-btn:hover { background: #a33220; }
+
+  /* Toast */
+  .toast {
+    position: fixed; top: 80px; left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: var(--black); color: var(--yellow);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.15em;
+    padding: 8px 20px;
+    opacity: 0; transition: all 0.25s;
+    z-index: 99; pointer-events: none;
+    white-space: nowrap;
+    border-left: 4px solid var(--yellow);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <div class="lock-top">
+    <div class="lock-circle"><div class="lock-icon">🔒</div></div>
+    <div class="lock-title">LISTA<br><span>DA LEILA</span></div>
+    <div class="lock-sub">30 · março · acesso restrito</div>
+  </div>
+  <div class="lock-form">
+    <input type="password" id="pwd" placeholder="· · · · · ·" />
+    <button class="lock-btn" id="entrar">ENTRAR</button>
+    <div class="lock-err" id="errmsg"></div>
+  </div>
+
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="hd">
+    <div class="hd-inner">
+      <div class="hd-left">
+        <div class="hd-title">LISTA <span>30/03</span></div>
+        <div class="hd-date">Mercearia · Frios · Hortifruti</div>
+      </div>
+      <div class="hd-right">
+        <div class="hd-count" id="hdCount">0</div>
+        <div class="hd-count-label" id="hdLabel">de 41</div>
+      </div>
+    </div>
+    <div class="prog-strip"><div class="prog-fill" id="progFill"></div></div>
+  </div>
+
+  <div class="container" id="listaDiv"></div>
+
+  <div class="bot">
+    <div class="bot-hint">— toque para marcar</div>
+    <button class="clr-btn" id="clearBtn">LIMPAR</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var SENHA = 'GuiGui';
+var KEY   = 'lista-leila-30-03';
+
+var lista = {
+  "MERCEARIA": {
+    cor: "sec-mercearia",
+    items: [
+      {id:"m1",  nome:"Açafrão / cúrcuma em pó",                     qty:"10 g"},
+      {id:"m2",  nome:"Amido de milho",                               qty:"50 g"},
+      {id:"m3",  nome:"Azeite de dendê",                              qty:"50 ml"},
+      {id:"m4",  nome:"Cacau em pó ou chocolate 70%",                 qty:"50 g"},
+      {id:"m5",  nome:"Castanha de caju crua s/ sal",                 qty:"300 g"},
+      {id:"m6",  nome:"Cominho em pó",                                qty:"5 g"},
+      {id:"m7",  nome:"Creme de leite vegano (se não achar castanha)",qty:"2 cx"},
+      {id:"m8",  nome:"Curry em pó",                                  qty:"10 g"},
+      {id:"m9",  nome:"Extrato de tomate",                            qty:"300 g"},
+      {id:"m10", nome:"Feijão branco — deixar de molho",              qty:"400 g"},
+      {id:"m11", nome:"Feijão vermelho — deixar de molho",            qty:"400 g"},
+      {id:"m12", nome:"Funghi",                                       qty:"60 g"},
+      {id:"m13", nome:"Grão de bico",                                 qty:"400 g"},
+      {id:"m14", nome:"Leite de coco",                                qty:"2 L"},
+      {id:"m15", nome:"Levedura nutricional",                         qty:"50 g"},
+      {id:"m16", nome:"Mel",                                          qty:"40 g"},
+      {id:"m17", nome:"Milho em conserva",                            qty:"1 lata"},
+      {id:"m18", nome:"Mostarda tipo Dijon",                          qty:"40 g"},
+      {id:"m19", nome:"Páprica doce e defumada",                      qty:"10 g"},
+      {id:"m20", nome:"Passata de tomates",                           qty:"700 g"},
+      {id:"m21", nome:"Shoyu",                                        qty:"200 ml"}
+    ]
+  },
+  "FRIOS": {
+    cor: "sec-frios",
+    items: [
+      {id:"f1", nome:"Cogumelo portobello", qty:"200 g"},
+      {id:"f2", nome:"Cogumelo shitaki",    qty:"400 g"},
+      {id:"f3", nome:"Cogumelos paris",     qty:"400 g"},
+      {id:"f4", nome:"Palmito in natura",   qty:"800 g"},
+      {id:"f5", nome:"Tofu firme",          qty:"1 kg"}
+    ]
+  },
+  "HORTIFRUTI": {
+    cor: "sec-horti",
+    items: [
+      {id:"h1",  nome:"Abóbora cabotiá descascada",          qty:"300 g"},
+      {id:"h2",  nome:"Alho",                                qty:"2 cab."},
+      {id:"h3",  nome:"Banana da terra",                     qty:"5 un."},
+      {id:"h4",  nome:"Batata inglesa",                      qty:"2 un."},
+      {id:"h5",  nome:"Cebola",                              qty:"7 un."},
+      {id:"h6",  nome:"Cebolinha",                           qty:"1 maço"},
+      {id:"h7",  nome:"Cenoura",                             qty:"4 un."},
+      {id:"h8",  nome:"Gengibre",                            qty:"100 g"},
+      {id:"h9",  nome:"Limão tahiti",                        qty:"2 un."},
+      {id:"h10", nome:"Mandioquinha",                        qty:"1,2 kg"},
+      {id:"h11", nome:"Manga palmer (nem madura nem verde)", qty:"1 un."},
+      {id:"h12", nome:"Pimentão verde",                      qty:"2 un."},
+      {id:"h13", nome:"Salsão",                              qty:"1 maço"},
+      {id:"h14", nome:"Salsinha",                            qty:"1 maço"},
+      {id:"h15", nome:"Tomates",                             qty:"3 un."}
+    ]
+  }
+};
+
+var checked = {};
+
+function loadChecked() {
+  try { checked = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { checked = {}; }
+}
+function saveChecked() { localStorage.setItem(KEY, JSON.stringify(checked)); }
+
+function allItems() {
+  var arr = [];
+  for (var s in lista) lista[s].items.forEach(function(i){ arr.push(i); });
+  return arr;
+}
+
+function render() {
+  var items = allItems();
+  var total = items.length;
+  var done  = items.filter(function(i){ return checked[i.id]; }).length;
+
+  document.getElementById('progFill').style.width = total ? (done/total*100)+'%' : '0%';
+  document.getElementById('hdCount').textContent  = done;
+  document.getElementById('hdLabel').textContent  = 'de ' + total;
+
+  var container = document.getElementById('listaDiv');
+  container.innerHTML = '';
+
+  for (var secName in lista) {
+    var sec      = lista[secName];
+    var secItems = sec.items;
+    var secDone  = secItems.filter(function(i){ return checked[i.id]; }).length;
+
+    var sDiv = document.createElement('div');
+    sDiv.className = 'section ' + sec.cor;
+
+    var hDiv = document.createElement('div');
+    hDiv.className = 'sec-header';
+    hDiv.innerHTML =
+      '<div class="sec-color-bar"></div>' +
+      '<div class="sec-label">' + secName + '</div>' +
+      '<div class="sec-num">' + secDone + ' / ' + secItems.length + '</div>';
+    sDiv.appendChild(hDiv);
+
+    secItems.forEach(function(item) {
+      var isDone = !!checked[item.id];
+      var div = document.createElement('div');
+      div.className = 'item' + (isDone ? ' done' : '');
+      div.innerHTML =
+        '<div class="chk-col"></div>' +
+        '<div class="iinfo"><div class="iname">' + item.nome + '</div></div>' +
+        '<div class="iqty-col"><div class="iqty">' + item.qty + '</div></div>';
+      div.addEventListener('click', (function(id){ return function(){ toggle(id); }; })(item.id));
+      sDiv.appendChild(div);
+    });
+
+    container.appendChild(sDiv);
+  }
+}
+
+function toggle(id) {
+  checked[id] = !checked[id];
+  saveChecked();
+  render();
+  showToast(checked[id] ? '✓ MARCADO' : '↩ DESMARCADO');
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 1500);
+}
+
+function unlock() {
+  var val = document.getElementById('pwd').value;
+  if (val === SENHA) {
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display  = 'block';
+    loadChecked();
+    render();
+    document.getElementById('clearBtn').addEventListener('click', function(){
+      if (confirm('Limpar todos os checks?')) { checked = {}; saveChecked(); render(); }
+    });
+  } else {
+    document.getElementById('errmsg').textContent = 'SENHA INCORRETA — tente novamente';
+    document.getElementById('pwd').value = '';
+  }
+}
+
+document.getElementById('entrar').addEventListener('click', unlock);
+document.getElementById('pwd').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') unlock();
+});
+</script>
+</body>
+</html>
